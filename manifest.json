@@ -1,0 +1,26 @@
+{
+  "name": "TaskFlow — Task Manager",
+  "short_name": "TaskFlow",
+  "description": "Aplikasi manajemen tugas offline berbasis PWA untuk personal, freelancer, karyawan, dan mahasiswa.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F4F5FA",
+  "theme_color": "#5B5FEF",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='38' fill='%235B5FEF'/%3E%3Cpath d='M54 100l27 27 57-57' stroke='white' stroke-width='19' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%235B5FEF'/%3E%3Cpath d='M144 266l72 72 152-152' stroke='white' stroke-width='50' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#5B5FEF">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>TaskFlow — Task Manager</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%235B5FEF'/%3E%3Cpath d='M28 52l14 14 30-30' stroke='white' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- =====================================================
+     APP SHELL
+     ===================================================== -->
+<div id="app">
+
+  <!-- ============ SIDEBAR / BOTTOM NAV ============ -->
+  <nav id="sidebar" class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">✅</span>
+      <span class="brand-text">TaskFlow</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></li>
+      <li class="nav-item" data-view="kanban"><span class="nav-icon">🗂️</span><span class="nav-label">Kanban Board</span></li>
+      <li class="nav-item" data-view="activity"><span class="nav-icon">🕒</span><span class="nav-label">Activity Log</span></li>
+      <li class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></li>
+    </ul>
+    <button id="btn-new-task" class="btn-primary btn-block">+ Tugas Baru</button>
+  </nav>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main id="main-content" class="main-content">
+
+    <!-- ---------- TOP BAR ---------- -->
+    <header class="topbar">
+      <button id="btn-menu-toggle" class="icon-btn only-mobile" aria-label="Menu">☰</button>
+      <h1 id="view-title" class="view-title">Dashboard</h1>
+      <div class="topbar-actions">
+        <button id="btn-theme-toggle" class="icon-btn" title="Ganti tema">🌙</button>
+      </div>
+    </header>
+
+    <!-- ---------- DASHBOARD VIEW ---------- -->
+    <section id="view-dashboard" class="view active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon stat-total">📋</div>
+          <div class="stat-info"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Total Task</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-todo">📝</div>
+          <div class="stat-info"><span class="stat-value" id="stat-todo">0</span><span class="stat-label">To Do</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-progress">⏳</div>
+          <div class="stat-info"><span class="stat-value" id="stat-inprogress">0</span><span class="stat-label">In Progress</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-done">✅</div>
+          <div class="stat-info"><span class="stat-value" id="stat-done">0</span><span class="stat-label">Done</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-overdue">⚠️</div>
+          <div class="stat-info"><span class="stat-value" id="stat-overdue">0</span><span class="stat-label">Overdue</span></div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Task per Status</h3>
+          <canvas id="chart-status" width="320" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Task per Priority</h3>
+          <canvas id="chart-priority" width="320" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Completion Rate</h3>
+          <canvas id="chart-completion" width="320" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- KANBAN VIEW ---------- -->
+    <section id="view-kanban" class="view">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Cari judul, deskripsi, atau tag...">
+        </div>
+        <div class="filter-group">
+          <select id="filter-priority" class="filter-select">
+            <option value="">Semua Prioritas</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <select id="filter-due" class="filter-select">
+            <option value="">Semua Tanggal</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due Today</option>
+            <option value="week">7 Hari Kedepan</option>
+          </select>
+          <button id="btn-clear-filter" class="btn-ghost">Reset</button>
+        </div>
+      </div>
+
+      <div class="kanban-board">
+        <div class="kanban-column" data-status="todo">
+          <div class="kanban-column-header">
+            <span>📝 To Do</span>
+            <span class="column-count" id="count-todo">0</span>
+          </div>
+          <div class="kanban-cards" id="cards-todo" data-status="todo"></div>
+        </div>
+        <div class="kanban-column" data-status="inprogress">
+          <div class="kanban-column-header">
+            <span>⏳ In Progress</span>
+            <span class="column-count" id="count-inprogress">0</span>
+          </div>
+          <div class="kanban-cards" id="cards-inprogress" data-status="inprogress"></div>
+        </div>
+        <div class="kanban-column" data-status="done">
+          <div class="kanban-column-header">
+            <span>✅ Done</span>
+            <span class="column-count" id="count-done">0</span>
+          </div>
+          <div class="kanban-cards" id="cards-done" data-status="done"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ACTIVITY LOG VIEW ---------- -->
+    <section id="view-activity" class="view">
+      <div class="toolbar">
+        <h3 style="margin:0">Riwayat Aktivitas</h3>
+        <button id="btn-clear-log" class="btn-ghost">Hapus Semua Log</button>
+      </div>
+      <div class="activity-table-wrap">
+        <table class="activity-table">
+          <thead>
+            <tr><th>Waktu</th><th>Aksi</th><th>Detail</th></tr>
+          </thead>
+          <tbody id="activity-tbody"></tbody>
+        </table>
+      </div>
+      <button id="btn-load-more-log" class="btn-secondary btn-block">Muat Lebih Banyak</button>
+    </section>
+
+    <!-- ---------- SETTINGS VIEW ---------- -->
+    <section id="view-settings" class="view">
+      <div class="settings-list">
+
+        <div class="settings-group">
+          <h3>Tampilan</h3>
+          <div class="settings-row">
+            <span>Mode Gelap</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle-dark-mode">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>Export Data</h3>
+          <button id="btn-export-csv" class="btn-secondary btn-block">⬇️ Export CSV</button>
+          <button id="btn-export-json" class="btn-secondary btn-block">⬇️ Export JSON</button>
+        </div>
+
+        <div class="settings-group">
+          <h3>Import Data</h3>
+          <button id="btn-import-csv" class="btn-secondary btn-block">⬆️ Import CSV</button>
+          <button id="btn-import-json" class="btn-secondary btn-block">⬆️ Import JSON</button>
+          <input type="file" id="file-import-csv" accept=".csv" hidden>
+          <input type="file" id="file-import-json" accept=".json" hidden>
+        </div>
+
+        <div class="settings-group">
+          <h3>Backup &amp; Restore</h3>
+          <button id="btn-backup" class="btn-secondary btn-block">💾 Backup Data (JSON)</button>
+          <button id="btn-restore" class="btn-secondary btn-block">♻️ Restore Data</button>
+          <input type="file" id="file-restore" accept=".json" hidden>
+        </div>
+
+        <div class="settings-group">
+          <h3>Zona Berbahaya</h3>
+          <button id="btn-reset-all" class="btn-danger btn-block">🗑️ Reset Semua Data</button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- =====================================================
+     MODAL: TAMBAH / EDIT TASK
+     ===================================================== -->
+<div id="modal-task" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-task-title">Tugas Baru</h2>
+      <button class="icon-btn" id="btn-close-task-modal">✕</button>
+    </div>
+    <form id="form-task" class="modal-body">
+      <input type="hidden" id="task-id">
+
+      <label class="field-label">Judul Tugas *</label>
+      <input type="text" id="task-title" class="field-input" required maxlength="120" placeholder="Contoh: Buat laporan bulanan">
+
+      <label class="field-label">Deskripsi</label>
+      <textarea id="task-description" class="field-input" rows="3" placeholder="Detail tugas..."></textarea>
+
+      <div class="field-row">
+        <div class="field-col">
+          <label class="field-label">Prioritas</label>
+          <select id="task-priority" class="field-input">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="field-col">
+          <label class="field-label">Status</label>
+          <select id="task-status" class="field-input">
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-col">
+          <label class="field-label">Tanggal Mulai</label>
+          <input type="date" id="task-start-date" class="field-input">
+        </div>
+        <div class="field-col">
+          <label class="field-label">Tanggal Tenggat</label>
+          <input type="date" id="task-due-date" class="field-input">
+        </div>
+      </div>
+
+      <label class="field-label">Progress (<span id="progress-value-label">0</span>%)</label>
+      <input type="range" id="task-progress" min="0" max="100" step="5" value="0" class="field-range">
+
+      <label class="field-label">Tags (pisahkan dengan koma)</label>
+      <input type="text" id="task-tags" class="field-input" placeholder="kerja, mendesak, klien">
+
+      <label class="field-label">Notes</label>
+      <textarea id="task-notes" class="field-input" rows="2" placeholder="Catatan tambahan..."></textarea>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-delete-task" class="btn-danger" style="display:none">Hapus</button>
+        <div class="modal-footer-right">
+          <button type="button" id="btn-cancel-task" class="btn-ghost">Batal</button>
+          <button type="submit" class="btn-primary">Simpan</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================
+     MODAL: IMPORT PREVIEW
+     ===================================================== -->
+<div id="modal-import" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Preview Import</h2>
+      <button class="icon-btn" id="btn-close-import-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="import-summary" class="import-summary"></div>
+      <div class="import-preview-wrap">
+        <table class="activity-table">
+          <thead><tr><th>Judul</th><th>Status</th><th>Prioritas</th><th>Due Date</th><th>Ket.</th></tr></thead>
+          <tbody id="import-preview-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-footer-right">
+          <button type="button" id="btn-cancel-import" class="btn-ghost">Batal</button>
+          <button type="button" id="btn-confirm-import" class="btn-primary">Konfirmasi Import</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- toast notification container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
